@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+
+    <body style="background-color: black">
+        <canvas width="800" height="720"></canvas>
+        <script>
+            function resizeImageData(old_canvas) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 720;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(5, 5);
+                ctx.drawImage(old_canvas, 0, 0);
+
+                return ctx.getImageData(0, 0, 800, 720);
+            }
+
+            const setScreen = screen => {
+                const canvas = document.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+                let imageData = ctx.createImageData(160, 144);
+                for (let i = 0; i < imageData.data.length; i += 1) {
+                    imageData.data[i] = screen[i];
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                imageData = resizeImageData(canvas);
+                ctx.putImageData(imageData, 0, 0);
+            };
+
+            const run = async () => {
+                const data = await fetch('/test');
+                const result = await data.json();
+                const screen = result.screen;
+                setScreen(screen);
+            };
+
+            // const loop = async () => {
+            //     await run();
+            //     setTimeout(loop, 1);
+            // };
+
+            // setTimeout(loop, 1);
+
+            setInterval(run, 16);
+            // run();
+        </script>
+    </body>
+</html>
