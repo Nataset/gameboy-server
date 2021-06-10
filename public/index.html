@@ -8,8 +8,8 @@
     </head>
 
     <body style="background-color: black">
-        <canvas id="big" width="800" height="720" style="display: none"></canvas>
-        <canvas id="small"></canvas>
+        <canvas id="big" width="800" height="720"></canvas>
+        <canvas id="small" style="display: none"></canvas>
         <script>
             function resizeImageData(old_canvas) {
                 const canvas = document.createElement('canvas');
@@ -20,6 +20,33 @@
                 ctx.drawImage(old_canvas, 0, 0);
 
                 return ctx.getImageData(0, 0, 800, 720);
+            }
+
+            function scaleImageData(imageData, scale, c) {
+                var scaled = c.createImageData(imageData.width * scale, imageData.height * scale);
+
+                for (var row = 0; row < imageData.height; row++) {
+                    for (var col = 0; col < imageData.width; col++) {
+                        var sourcePixel = [
+                            imageData.data[(row * imageData.width + col) * 4 + 0],
+                            imageData.data[(row * imageData.width + col) * 4 + 1],
+                            imageData.data[(row * imageData.width + col) * 4 + 2],
+                            imageData.data[(row * imageData.width + col) * 4 + 3],
+                        ];
+                        for (var y = 0; y < scale; y++) {
+                            var destRow = row * scale + y;
+                            for (var x = 0; x < scale; x++) {
+                                var destCol = col * scale + x;
+                                for (var i = 0; i < 4; i++) {
+                                    scaled.data[(destRow * scaled.width + destCol) * 4 + i] =
+                                        sourcePixel[i];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return scaled;
             }
 
             const big_ctx = document.querySelector('#big').getContext('2d');
@@ -33,6 +60,7 @@
                     imageData.data[i] = screen[i];
                 }
 
+                // imageData = scaleImageData(imageData, 5, ctx);
                 ctx.putImageData(imageData, 0, 0);
 
                 big_ctx.drawImage(small_canvas, 0, 0);
@@ -41,19 +69,21 @@
             };
 
             const run = async () => {
+                console.time('time to run');
                 const data = await fetch('/test');
                 const result = await data.json();
                 const screen = result.screen;
-                setScreen(screen);
+                await setScreen(screen);
+                console.timeEnd('time to run');
             };
 
             // const loop = async () => {
             //     await run();
-            //     setTimeout(loop, 2);
+            //     setTimeout(loop, 10);
             // };
-            // setTimeout(loop, 2);
+            // setTimeout(loop, 10);
 
-            setInterval(run, 16);
+            setInterval(run, 33);
 
             // run();
         </script>
